@@ -2,8 +2,8 @@ package net.redpipe.examples.services;
 
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.mongo.MongoClient;
+import io.vertx.core.Vertx;
 import net.redpipe.examples.domain.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class TodoMongoService {
         final JsonObject config = new JsonObject()
                 .put("connection_string", "mongodb://localhost:27018")
                 .put("db_name", "my_DB");
-        client = MongoClient.createShared(vertx, config);
+        client = MongoClient.createShared(io.vertx.reactivex.core.Vertx.newInstance(vertx), config);
         client.createCollection(COLLECTION, res -> {
             if (res.failed()) {
                 LOG.error("Could not create collection {} within Mongo.", COLLECTION, res.cause());
