@@ -1,0 +1,19 @@
+group 'net.redpipe'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'net.redpipe:redpipe-engine:0.0.2'
+    compile 'net.redpipe:redpipe-cdi:0.0.2'
+
+    compile 'io.vertx:vertx-mongo-embedded-db:3.5.1'
+    compile 'io.vertx:vertx-mongo-client:3.5.1'
+    compile 'io.vertx:vertx-rx-java2:3.5.1'
+}
