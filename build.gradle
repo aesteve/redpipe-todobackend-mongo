@@ -1,7 +1,18 @@
 group 'net.redpipe'
 version '1.0-SNAPSHOT'
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
 
@@ -9,8 +20,16 @@ repositories {
     mavenCentral()
 }
 
+mainClassName = 'net.redpipe.examples.TodobackendMongo'
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+shadowJar {
+    mergeServiceFiles()
+}
 dependencies {
-    compile 'net.redpipe:redpipe-engine:0.0.2'
     compile 'net.redpipe:redpipe-cdi:0.0.2'
 
     compile 'io.vertx:vertx-mongo-embedded-db:3.5.1'
