@@ -1,9 +1,11 @@
 package net.redpipe.examples.services;
 
 import io.reactivex.Single;
+import io.reactivex.functions.Function;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.mongo.MongoClient;
-import io.vertx.core.Vertx;
+
+import io.vertx.rxjava.core.Vertx;
 import net.redpipe.examples.domain.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,9 @@ import java.util.List;
 import net.redpipe.examples.marshalling.TodoMarshaller;
 
 import javax.ws.rs.ext.Provider;
+
+import static net.redpipe.examples.utils.Conf.MONGO_PORT;
+import static net.redpipe.examples.utils.RxUtils.rx1ToRx2;
 
 @Provider
 public class TodoMongoService {
@@ -29,15 +34,19 @@ public class TodoMongoService {
     private MongoClient client;
 
     public Single<List<Todo>> findAll() {
-        return client()
+        return withClient(client ->
+            client
                 .rxFind(COLLECTION, EMPTY_QUERY)
-                .map(TodoMarshaller::fromMongoCollection);
+                .map(TodoMarshaller::fromMongoCollection)
+        );
     }
 
     public Single<Todo> findById(int id) {
-        return client()
+        return withClient(client ->
+            client
                 .rxFindOne(COLLECTION, byId(id), null)
-                .map(TodoMarshaller::fromMongo);
+                .map(TodoMarshaller::fromMongo)
+        );
     }
 
     private JsonObject byId(int id) {
@@ -45,25 +54,25 @@ public class TodoMongoService {
                 .put("id", id);
     }
 
-    private void init() {
+    private Single<MongoClient> init() {
         final JsonObject config = new JsonObject()
-                .put("connection_string", "mongodb://localhost:27018")
+                .put("connection_string", "mongodb://localhost:" + MONGO_PORT)
                 .put("db_name", "my_DB");
-        client = MongoClient.createShared(io.vertx.reactivex.core.Vertx.newInstance(vertx), config);
-        client.createCollection(COLLECTION, res -> {
-            if (res.failed()) {
-                LOG.error("Could not create collection {} within Mongo.", COLLECTION, res.cause());
-            } else {
-                LOG.info("Successfully created collection {} within Mongo", COLLECTION);
-            }
-        });
+        client = MongoClient.createShared(rx1ToRx2(vertx), config);
+        return client
+                .rxCreateCollection(COLLECTION)
+                .toSingleDefault(client);
     }
 
-    private MongoClient client() {
+    private<R> Single<R> withClient(Function<MongoClient, Single<R>> execution) {
+        return client().flatMap(execution);
+    }
+
+    private Single<MongoClient> client() {
         if (client == null) {
-            init();
+            return init();
         }
-        return client;
+        return Single.just(client);
     }
 
 }
