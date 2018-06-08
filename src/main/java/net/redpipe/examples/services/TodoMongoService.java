@@ -3,9 +3,9 @@ package net.redpipe.examples.services;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
 import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 
-import io.vertx.rxjava.core.Vertx;
 import net.redpipe.examples.domain.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,6 @@ import net.redpipe.examples.marshalling.TodoMarshaller;
 import javax.ws.rs.ext.Provider;
 
 import static net.redpipe.examples.utils.Conf.MONGO_PORT;
-import static net.redpipe.examples.utils.RxUtils.rx1ToRx2;
 
 @Provider
 public class TodoMongoService {
@@ -58,7 +57,7 @@ public class TodoMongoService {
         final JsonObject config = new JsonObject()
                 .put("connection_string", "mongodb://localhost:" + MONGO_PORT)
                 .put("db_name", "my_DB");
-        client = MongoClient.createShared(rx1ToRx2(vertx), config);
+        client = MongoClient.createShared(vertx, config);
         return client
                 .rxCreateCollection(COLLECTION)
                 .toSingleDefault(client);
